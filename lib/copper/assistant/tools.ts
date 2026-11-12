@@ -1,6 +1,6 @@
-// Module 2: the four tools Ask Copper can use. Products and prices come from
-// lib/copper/catalog.ts and stock from lib/copper/inventory.ts, so the
-// chatbot never has to make them up.
+// The tools Ask Copper can use. Products and prices come from
+// lib/copper/catalog.ts, stock from lib/copper/inventory.ts and support answers
+// from the customer documents (Module 3), so the chatbot never makes them up.
 // Each tool returns plain data; the model writes the reply around it.
 import { tool } from "ai";
 import { z } from "zod";
@@ -10,6 +10,7 @@ import {
   type Plan,
   type ProductId,
 } from "@/lib/copper/catalog";
+import { searchDocuments } from "@/lib/copper/document-search";
 import { readInventory } from "@/lib/copper/inventory";
 
 export type ProductList = {
@@ -200,5 +201,19 @@ export const copperTools = {
       "Checks today's stock for a Copper product, for every color or just one.",
     inputSchema: checkAvailabilityInput,
     execute: async (input) => checkAvailability(input),
+  }),
+  search_documents: tool({
+    description:
+      "Searches the Copper support documents (user guides, terms, Copper Plus FAQ) and returns the best-matching pages with their page numbers. Use it for how-to, error codes, warranty, returns, refunds and policy questions.",
+    inputSchema: z.object({
+      query: z
+        .string()
+        .min(2)
+        .max(200)
+        .describe(
+          "The shopper's question, or its key words, like 'C-31 Copper Notes'.",
+        ),
+    }),
+    execute: async ({ query }) => searchDocuments(query),
   }),
 };

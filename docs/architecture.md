@@ -96,3 +96,18 @@ each step. Module 3 teaches it to answer from the customer documents.
 | Instructions | `lib/copper/assistant/instructions.ts` | `COPPER_INSTRUCTIONS`. Copper says it can't help yet with warranty, setup, troubleshooting or privacy |
 | Data | `lib/copper/inventory.ts`, `lib/copper/documents.ts` | Stock from `lib/copper/data/inventory.json`; `DOCUMENTS`: the four customer documents and their PDF paths under `public/docs/`. The PDFs are added in class |
 | AI calls | `{ module: 2, feature: "ask-copper" }` | One streamed call per question |
+
+## Module 3: answers from the support documents
+
+**Summary:** Ask Copper answers support questions (error codes, how-to,
+refunds, warranty) from the four customer PDFs and cites the page each answer
+came from. This is retrieval: find the relevant pages first, then let the model
+answer only from them.
+
+| Piece | Where | What it does |
+|---|---|---|
+| PDFs | `public/docs/*.pdf` | The four customer documents, served at `/docs/<id>.pdf` so a citation can open the right page (`#page=N`) |
+| Page text | `lib/copper/data/document-pages.json` | Each page's text, pulled out once by `scripts/extract-document-pages.py` (rerun it after replacing a PDF) |
+| Search | `lib/copper/document-search.ts` | `searchDocuments(query)`: scores every page by the question's rare words (an error code counts far more than "app") and returns the best 3 pages, or `not_found` when no page covers at least half of what makes the question specific |
+| Tool | `search_documents` in `lib/copper/assistant/tools.ts` | Lets the model run that search. The panel's tool card lists each page found, linked to the PDF |
+| Instructions | `lib/copper/assistant/instructions.ts` | Support questions must be answered from `search_documents` and end with "(Document title, page N)"; if nothing matches, Copper says it couldn't find that in the support documents |

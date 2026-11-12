@@ -605,6 +605,28 @@ function ToolOutput({ name, output }: { name: string; output: any }) {
       </div>
     );
   }
+  if (name === "search_documents" && output?.status === "not_found")
+    return <p className="text-xs">{output.message}</p>;
+  if (name === "search_documents" && output?.matches)
+    return (
+      <div className="space-y-3 text-xs">
+        {output.matches.map((m: any) => (
+          <div key={`${m.documentId}-${m.page}`}>
+            <a
+              href={m.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary font-medium underline-offset-4 hover:underline"
+            >
+              {m.title}, page {m.page}
+            </a>
+            <p className="text-muted-foreground mt-0.5 line-clamp-4 whitespace-pre-line">
+              {m.text}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
   // A tool without its own layout yet: show what came back as plain text.
   return (
     <pre className="max-h-48 overflow-auto text-xs whitespace-pre-wrap">
